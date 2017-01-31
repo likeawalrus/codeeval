@@ -1,0 +1,20 @@
+#include <iostream>
+#include <fstream>
+using namespace std;
+int main(int argc, char *argv[]) {
+    ifstream stream(argv[1]);
+    string line;
+		int x;
+		bool isOdd;
+    while (getline(stream, line)) {
+        // Do something with the line
+				x = stoi(line);
+				if((x >> 0) & 1){
+					cout<<0<<endl;
+				}
+				else{
+					cout<<1<<endl;
+				}
+    }
+    return 0;
+}

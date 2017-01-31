@@ -1,0 +1,188 @@
+//(1,4) and (2,9) and (6,5)
+//(1,4) is closer to (4,7)
+//For the next point in the X or Y direction, the closest point cannot have a distance in the X direction
+//greater than the current distance in the Y direction and vice versa
+//so While dX <= dY start
+
+#include <iostream>
+#include <fstream>
+#include <cmath>
+using namespace std;
+
+struct node{
+	long int x;
+	long int y;
+	node* nextNodeX = NULL;
+	node* nextNodeY = NULL;
+};
+
+void addToLinkedList(int nextX, int nextY, node * head){
+  node * currNode = head;
+  bool done = false;
+  node * thisNode = new node;
+  thisNode->x = nextX;
+	thisNode->y = nextY;
+  while(!done){
+    if(currNode->nextNodeX == NULL){
+      thisNode->nextNodeX = NULL;
+      currNode->nextNodeX = thisNode;
+      done = true;
+		}
+		else if(currNode->nextNodeX->x == nextX && currNode->nextNodeX->y > nextY){//if current X is equal to next one and next Y is bigger
+      thisNode->nextNodeX = currNode->nextNodeX;
+      currNode->nextNodeX = thisNode;
+      done = true;
+		}
+    else if(currNode->nextNodeX->x > nextX){//if next node's X is bigger than this one, insert this here
+      thisNode->nextNodeX = currNode->nextNodeX;
+      currNode->nextNodeX = thisNode;
+      done = true;
+    }
+    else {
+      currNode = currNode->nextNodeX;
+    }
+  }
+	currNode = head;
+	done = false;
+  while(!done){
+    if(currNode->nextNodeY == NULL){
+      thisNode->nextNodeY = NULL;
+      currNode->nextNodeY = thisNode;
+      done = true;
+    }
+		else if(currNode->nextNodeY->y == nextY && currNode->nextNodeY->x > nextX){//if current Y is equal to next one and next X is bigger
+	    thisNode->nextNodeY = currNode->nextNodeY;
+	    currNode->nextNodeY = thisNode;
+	    done = true;
+		}
+    else if(currNode->nextNodeY->y > nextY){
+      thisNode->nextNodeY = currNode->nextNodeY;
+      currNode->nextNodeY = thisNode;
+      done = true;
+    }
+    else {
+      currNode = currNode->nextNodeY;
+    }
+  }
+}
+
+int main(int argc, char *argv[]) {
+  ifstream stream(argv[1]);
+  string line;
+
+	while(getline(stream, line)){		
+		int numb_entries = stoi(line);
+		if(numb_entries == 0){
+			break;
+		}
+	  node begin;
+		begin.x = 100000;
+		begin.y = 100000;
+	  node* head = &begin;
+		for(int i = 0; i < numb_entries; i++){
+		 	getline(stream, line);
+			int space = line.find_first_of(' ');
+			string theX = line.substr(0, space);
+			string theY = line.substr(space+1);
+			int nextX = stoi(theX);
+			int nextY = stoi(theY);
+			addToLinkedList(nextX, nextY, head);
+    }
+		//ends the while mess
+		//then it is time to sort through this mess and get distances
+		long int smallestX = 50000;
+		long int smallestY = 50000;
+		node * currNode = head;
+//		currNode = currNode->nextNodeX;			
+		while(currNode->nextNodeX != NULL){
+			node * testAgainst = currNode;
+			bool keepGoing = true;
+			int tooFar = abs(currNode->nextNodeX->y - currNode->y);
+			while(testAgainst->nextNodeX != NULL && keepGoing){//travel down the X path until Xc-Xi > tooFarY or we run out of nodes 
+				long int dX = testAgainst->nextNodeX->x - currNode->x;
+				long int dY = testAgainst->nextNodeX->y - currNode->y;
+				if((smallestX*smallestX+smallestY*smallestY) > (dX*dX + dY*dY)){
+					smallestX = dX;
+					smallestY = dY;
+				}
+				if(dX > tooFar){
+					keepGoing = false;
+				}
+				testAgainst = testAgainst->nextNodeX;
+			}
+			keepGoing = true;
+			testAgainst = currNode;
+			if(currNode->nextNodeY != NULL){
+				tooFar = abs(currNode->nextNodeY->x - currNode->x);
+			}
+			while(testAgainst->nextNodeY != NULL && keepGoing){//travel down the Y path until Yc-Yi > tooFarX or we run out of nodes 
+				long int dX = testAgainst->nextNodeY->x - currNode->x;
+				long int dY = testAgainst->nextNodeY->y - currNode->y;
+				if((smallestX*smallestX+smallestY*smallestY) > (dX*dX + dY*dY)){
+					smallestX = dX;
+					smallestY = dY;
+				}
+				if(dY > tooFar){
+					keepGoing = false;
+				}
+				testAgainst = testAgainst->nextNodeY;
+			}
+			currNode = currNode->nextNodeX;
+		}
+		currNode = head;
+		while(currNode->nextNodeY != NULL){
+			node * testAgainst = currNode;
+			bool keepGoing = true;
+			int tooFar;
+			if(currNode->nextNodeX != NULL){
+				tooFar = abs(currNode->nextNodeX->y - currNode->y);
+			}
+			while(testAgainst->nextNodeX != NULL && keepGoing){//travel down the X path until Xc-Xi > tooFarY or we run out of nodes 
+				long int dX = testAgainst->nextNodeX->x - currNode->x;
+				long int dY = testAgainst->nextNodeX->y - currNode->y;
+				if((smallestX*smallestX+smallestY*smallestY) > (dX*dX + dY*dY)){
+					smallestX = dX;
+					smallestY = dY;
+				}
+				if(dX > tooFar){
+					keepGoing = false;
+				}
+				testAgainst = testAgainst->nextNodeX;
+			}
+			keepGoing = true;
+			testAgainst = currNode;
+			if(currNode->nextNodeY != NULL){
+				tooFar = abs(currNode->nextNodeY->x - currNode->x);
+			}
+			while(testAgainst->nextNodeY != NULL && keepGoing){//travel down the Y path until Yc-Yi > tooFarX or we run out of nodes 
+				long int dX = testAgainst->nextNodeY->x - currNode->x;
+				long int dY = testAgainst->nextNodeY->y - currNode->y;
+				if((smallestX*smallestX+smallestY*smallestY) > (dX*dX + dY*dY)){
+					smallestX = dX;
+					smallestY = dY;
+				}
+				if(dY > tooFar){
+					keepGoing = false;
+				}
+				testAgainst = testAgainst->nextNodeY;
+			}
+			currNode = currNode->nextNodeY;
+		}
+
+		//Done
+		long double finalValue = (long double)(smallestX*smallestX+smallestY*smallestY);
+		finalValue = sqrt(finalValue);
+		cout.precision(4);
+		cout.setf(std::ios::fixed, std::ios::floatfield);
+		if(finalValue < 10000.00L){
+			cout << finalValue<<endl;
+		}
+		else{
+			cout << "INFINITY"<<endl;
+		}
+		//need code here to kill the old linked lists
+		currNode->nextNodeX = NULL;
+		currNode->nextNodeY = NULL;//not going to trouble of deleting all nodes
+	}
+  return 0;
+}
